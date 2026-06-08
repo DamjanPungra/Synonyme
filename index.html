@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Synonyme Trainer A1–A2</title>
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 5vw;
+    background: #fafafa;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: clamp(1.8rem, 5vw, 2.6rem);
+    margin-bottom: 4vh;
+  }
+
+  h2 {
+    font-size: clamp(1.4rem, 4vw, 2rem);
+    margin-top: 5vh;
+  }
+
+  .counter {
+    font-size: clamp(1.2rem, 3.5vw, 1.8rem);
+    margin-bottom: 2vh;
+    text-align: center;
+  }
+
+  button {
+    width: 100%;
+    padding: clamp(14px, 4vh, 22px);
+    font-size: clamp(1.2rem, 4vw, 1.8rem);
+    border: none;
+    border-radius: 12px;
+    background: #2e7d32;
+    color: white;
+    margin-top: 2vh;
+    transition: 0.15s;
+  }
+
+  button:active {
+    background: #1b5e20;
+    transform: scale(0.98);
+  }
+
+  input {
+    width: 100%;
+    padding: clamp(12px, 3vh, 18px);
+    font-size: clamp(1.1rem, 3.5vw, 1.6rem);
+    border-radius: 10px;
+    border: 1px solid #bbb;
+    margin-top: 1.5vh;
+  }
+
+  #quiz {
+    margin-top: 3vh;
+  }
+
+  #question {
+    font-size: clamp(1.4rem, 4vw, 2rem);
+    margin-bottom: 2vh;
+    font-weight: bold;
+  }
+
+  .quiz-option {
+    background: #eaeaea;
+    padding: clamp(14px, 4vh, 22px);
+    margin-top: 2vh;
+    border-radius: 12px;
+    font-size: clamp(1.2rem, 4vw, 1.8rem);
+    text-align: center;
+    transition: 0.15s;
+  }
+
+  .quiz-option:active {
+    background: #d5d5d5;
+    transform: scale(0.98);
+  }
+
+  #feedback {
+    font-size: clamp(1.3rem, 4vw, 1.9rem);
+    margin-top: 2vh;
+    text-align: center;
+    font-weight: bold;
+  }
+
+  .entry {
+    padding: 1.2vh 0;
+    border-bottom: 1px solid #ddd;
+    font-size: clamp(1.1rem, 3.5vw, 1.6rem);
+  }
+
+  #list {
+    margin-top: 2vh;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+</style>
+</head>
+
+<body>
+
+<h1>Synonyme Trainer A1–A2</h1>
+
+<!-- QUIZ -->
+<h2>Quiz</h2>
+
+<div class="counter">
+  ✔️ Richtig: <span id="rightCount">0</span> &nbsp;&nbsp;
+  ❌ Falsch: <span id="wrongCount">0</span>
+</div>
+
+<button onclick="newQuestion()">Neue Frage</button>
+
+<div id="quiz" style="display:none;">
+  <div id="question"></div>
+  <div id="options"></div>
+  <div id="feedback"></div>
+</div>
+
+<hr style="margin-top:5vh;">
+
+<!-- WÖRTER HINZUFÜGEN -->
+<h2>Wort hinzufügen</h2>
+
+<input id="word" placeholder="Grundwort">
+<input id="syns" placeholder="Synonym (nur eines)">
+<button onclick="addEntry()">Speichern</button>
+
+<div id="list"></div>
+
+<script>
+let entries = [];
+let right = 0;
+let wrong = 0;
+
+const defaultEntries = [
+  { word: "glücklich", syns: ["froh"] },
+  { word: "traurig", syns: ["unglücklich"] },
+  { word: "müde", syns: ["erschöpft"] },
+  { word: "schnell", syns: ["rasch"] },
+  { word: "langsam", syns: ["gemächlich"] },
+  { word: "schön", syns: ["hübsch"] },
+  { word: "groß", syns: ["riesig"] },
+  { word: "klein", syns: ["winzig"] },
+  { word: "kalt", syns: ["kühl"] },
+  { word: "warm", syns: ["heiß"] },
+  { word: "reden", syns: ["sprechen"] },
+  { word: "gehen", syns: ["laufen"] },
+  { word: "arbeiten", syns: ["jobben"] },
+  { word: "essen", syns: ["speisen"] },
+  { word: "putzen", syns: ["reinigen"] },
+  { word: "das Haus", syns: ["das Gebäude"] },
+  { word: "das Auto", syns: ["der Wagen"] },
+  { word: "die Schule", syns: ["der Lernort"] },
+  { word: "die Arbeit", syns: ["der Job"] },
+  { word: "der Freund", syns: ["der Kumpel"] },
+  { word: "schicken", syns: ["senden"] },
+  { word: "öffnen", syns: ["aufmachen"] },
+  { word: "schließen", syns: ["zumachen"] },
+  { word: "informieren", syns: ["Bescheid geben"] },
+  { word: "ich freue mich", syns: ["ich bin glücklich"] },
+  { word: "ich weiß", syns: ["ich bin sicher"] },
+  { word: "ein bisschen", syns: ["ein wenig"] },
+  { word: "das Heimatland", syns: ["das Herkunftsland"] },
+  { word: "viel zu tun haben", syns: ["viel Arbeit haben"] },
+  { word: "der Automat", syns: ["die Maschine"] },
+  { word: "sehr wichtig", syns: ["extrem wichtig"] },
+  { word: "verschieden", syns: ["nicht gleich"] },
+  { word: "fair", syns: ["gerecht"] },
+  { word: "schwierig", syns: ["nicht einfach"] },
+  { word: "Nachname", syns: ["Familienname"] },
+  { word: "Nachricht hinterlassen", syns: ["Nachricht sprechen"] },
+  { word: "umziehen", syns: ["neue Adresse haben"] },
+  { word: "täglich", syns: ["jeden Tag"] },
+  { word: "verboten", syns: ["nicht erlaubt"] },
+  { word: "der Sommer", syns: ["von Juni bis August"] },
+  { word: "sauer", syns: ["wütend"] },
+  { word: "das Hobby", syns: ["die Freizeitaktivität"] },
+  { word: "selten", syns: ["nicht oft"] },
+  { word: "der Kollege", syns: ["der Mitarbeiter"] },
+  { word: "kriegen", syns: ["bekommen"] },
+  { word: "beenden", syns: ["fertig machen"] },
+  { word: "abschließen", syns: ["mit Schlüssel schließen"] },
+  { word: "intelligent", syns: ["klug"] },
+  { word: "gefallen", syns: ["mögen"] },
+  { word: "beginnen", syns: ["anfangen"] },
+  { word: "zuerst", syns: ["am Anfang"] },
+  { word: "zum Schluss", syns: ["am Ende"] },
+  { word: "das Pech", syns: ["das Unglück"] },
+  { word: "die Senioren", syns: ["alte Personen"] },
+  { word: "der Mensch", syns: ["die Person"] },
+  { word: "die Karotte", syns: ["die Möhre"] },
+  { word: "die Dame", syns: ["die Frau"] },
+  { word: "der Herr", syns: ["der Mann"] },
+  { word: "die Speise", syns: ["das Gericht"] },
+  { word: "der Beginner", syns: ["der Anfänger"] },
+  { word: "der Tipp", syns: ["der Ratschlag"] },
+  { word: "vormittags", syns: ["8 bis 12 Uhr"] },
+  { word: "ab sofort", syns: ["ab jetzt"] },
+  { word: "verpassen", syns: ["zu spät sein"] },
+  { word: "unterstützen", syns: ["helfen"] },
+  { word: "überrascht", syns: ["verwundert"] },
+  { word: "der Vorschlag", syns: ["die Idee"] },
+  { word: "nützlich", syns: ["hilfreich"] },
+  { word: "reden", syns: ["sprechen"] },
+  { word: "fragen", syns: ["eine Frage stellen"] },
+  { word: "antworten", syns: ["reagieren"] },
+  { word: "kaufen", syns: ["besorgen"] },
+  { word: "verkaufen", syns: ["zum Verkauf anbieten"] },
+  { word: "wohnen", syns: ["leben"] },
+  { word: "lernen", syns: ["üben"] },
+  { word: "schreiben", syns: ["notieren"] },
+  { word: "lesen", syns: ["anschauen"] },
+  { word: "hören", syns: ["zuhören"] },
+  { word: "sehen", syns: ["anschauen"] },
+  { word: "machen", syns: ["tun"] },
+  { word: "helfen", syns: ["unterstützen"] },
+  { word: "suchen", syns: ["finden wollen"] },
+  { word: "finden", syns: ["entdecken"] },
+  { word: "bringen", syns: ["holen"] },
+  { word: "nehmen", syns: ["holen"] },
+  { word: "bleiben", syns: ["da sein"] },
+  { word: "fahren", syns: ["reisen"] },
+  { word: "arbeiten", syns: ["jobben"] },
+  { word: "spielen", syns: ["mitmachen"] },
+  { word: "kochen", syns: ["zubereiten"] },
+  { word: "trinken", syns: ["Flüssigkeit aufnehmen"] },
+  { word: "laufen", syns: ["gehen"] },
+  { word: "aufstehen", syns: ["sich erheben"] },
+  { word: "sich setzen", syns: ["platznehmen"] }
+];
+
+function load() {
+  const raw = localStorage.getItem("synTrainerA1A2");
+  entries = raw ? JSON.parse(raw) : defaultEntries;
+  save();
+  renderList();
+}
+
+function save() {
+  localStorage.setItem("synTrainerA1A2", JSON.stringify(entries));
+}
+
+function addEntry() {
+  const w = word.value.trim();
+  const s = syns.value.trim();
+  if (!w || !s) return;
+
+  const existing = entries.find(e => e.word.toLowerCase() === w.toLowerCase());
+  existing ? existing.syns = [s] : entries.push({ word: w, syns: [s] });
+
+  save();
+  renderList();
+  word.value = "";
+  syns.value = "";
+}
+
+function renderList() {
+  list.innerHTML = "";
+  entries.forEach(e => {
+    const div = document.createElement("div");
+    div.className = "entry";
+    div.textContent = `${e.word} → ${e.syns[0]}`;
+    list.appendChild(div);
+  });
+}
+
+function newQuestion() {
+  if (!entries.length) return alert("Bitte zuerst Wörter eingeben.");
+
+  quiz.style.display = "block";
+  feedback.textContent = "";
+
+  const entry = entries[Math.floor(Math.random() * entries.length)];
+  const correct = entry.syns[0];
+
+  let wrongOptions = [];
+  while (wrongOptions.length < 2) {
+    const s = entries[Math.floor(Math.random() * entries.length)].syns[0];
+    if (s !== correct && !wrongOptions.includes(s)) wrongOptions.push(s);
+  }
+
+  const options = shuffle([correct, ...wrongOptions]);
+
+  question.textContent = `Welches Synonym passt zu: ${entry.word}?`;
+  optionsDiv = document.getElementById("options");
+  optionsDiv.innerHTML = "";
+
+  options.forEach(opt => {
+    const btn = document.createElement("div");
+    btn.className = "quiz-option";
+    btn.textContent = opt;
+    btn.onclick = () => check(opt, correct);
+    optionsDiv.appendChild(btn);
+  });
+}
+
+function check(answer, correct) {
+  if (answer === correct) {
+    right++;
+    rightCount.textContent = right;
+    feedback.style.color = "green";
+    feedback.textContent = "Richtig!";
+    setTimeout(newQuestion, 700);
+  } else {
+    wrong++;
+    wrongCount.textContent = wrong;
+    feedback.style.color = "red";
+    feedback.textContent = `Falsch – richtig wäre: ${correct}`;
+  }
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+load();
+</script>
+
+</body>
+</html>
